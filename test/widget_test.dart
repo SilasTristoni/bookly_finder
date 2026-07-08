@@ -1,9 +1,19 @@
+<<<<<<< HEAD
+import 'package:bookly_finder/main.dart';
+=======
+>>>>>>> master
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:bookly_finder/main.dart';
-
 void main() {
+<<<<<<< HEAD
+  testWidgets('shows the book search home screen', (tester) async {
+    await tester.pumpWidget(const BooklyFinderApp());
+
+    expect(find.text('Bookly Finder'), findsOneWidget);
+    expect(find.byType(TextField), findsOneWidget);
+    expect(find.text('Buscar livros'), findsOneWidget);
+=======
   testWidgets('shows home screen and opens favorites', (
     WidgetTester tester,
   ) async {
@@ -18,5 +28,6 @@ void main() {
 
     expect(find.text('Favoritos'), findsOneWidget);
     expect(find.text('Nenhum favorito ainda'), findsOneWidget);
+>>>>>>> master
   });
 }
