@@ -14,10 +14,61 @@ class Book {
   final String author;
   final int? coverId;
   final int? firstPublishYear;
+
+  /// Codigo de idioma retornado pela Open Library, geralmente em ISO 639.
+  /// Exemplos comuns: eng, por, spa, fre, rum.
   final String? language;
+
   final String? editionKey;
   final String? publisher;
   final String? description;
+
+  static const Map<String, String> _languageDisplayNames = {
+    'eng': 'Ingles',
+    'en': 'Ingles',
+    'por': 'Portugues',
+    'pt': 'Portugues',
+    'spa': 'Espanhol',
+    'es': 'Espanhol',
+    'fre': 'Frances',
+    'fra': 'Frances',
+    'fr': 'Frances',
+    'ger': 'Alemao',
+    'deu': 'Alemao',
+    'de': 'Alemao',
+    'ita': 'Italiano',
+    'it': 'Italiano',
+    'rum': 'Romeno',
+    'ron': 'Romeno',
+    'ro': 'Romeno',
+    'lat': 'Latim',
+    'grc': 'Grego antigo',
+    'rus': 'Russo',
+    'ru': 'Russo',
+    'jpn': 'Japones',
+    'ja': 'Japones',
+    'chi': 'Chines',
+    'zho': 'Chines',
+    'zh': 'Chines',
+    'ara': 'Arabe',
+    'ar': 'Arabe',
+    'dut': 'Holandes',
+    'nld': 'Holandes',
+    'nl': 'Holandes',
+    'swe': 'Sueco',
+    'sv': 'Sueco',
+    'pol': 'Polones',
+    'pl': 'Polones',
+    'tur': 'Turco',
+    'tr': 'Turco',
+    'hun': 'Hungaro',
+    'hu': 'Hungaro',
+    'cze': 'Tcheco',
+    'ces': 'Tcheco',
+    'cs': 'Tcheco',
+    'kor': 'Coreano',
+    'ko': 'Coreano',
+  };
 
   factory Book.fromJson(Map<String, dynamic> json) {
     final authors = _stringList(json['author_name']);
@@ -30,12 +81,13 @@ class Book {
       author: authors.isEmpty ? 'Autor desconhecido' : authors.join(', '),
       coverId: _intValue(json['cover_i']),
       firstPublishYear: _intValue(json['first_publish_year']),
-      language: languages.isEmpty ? null : languages.first,
+      language: _preferredLanguageCode(languages),
       editionKey: editions.isEmpty ? null : editions.first,
       publisher: publishers.isEmpty ? null : publishers.first,
       description:
           _firstStringValue(json['first_sentence']) ??
-          _firstStringValue(json['subtitle']),
+          _firstStringValue(json['subtitle']) ??
+          _summaryFromSubjects(json['subject']),
     );
   }
 
@@ -70,10 +122,37 @@ class Book {
     return year.toString();
   }
 
+  String get languageLabel {
+    final code = language?.trim().toLowerCase();
+    if (code == null || code.isEmpty) {
+      return 'Idioma nao informado pela Open Library.';
+    }
+
+    return _languageDisplayNames[code] ?? code.toUpperCase();
+  }
+
+  String get publisherLabel {
+    final text = publisher?.trim();
+    if (text == null || text.isEmpty) {
+      return 'Editora nao informada pela Open Library.';
+    }
+
+    return text;
+  }
+
+  String get editionLabel {
+    final text = editionKey?.trim();
+    if (text == null || text.isEmpty) {
+      return 'Edicao nao informada pela Open Library.';
+    }
+
+    return text;
+  }
+
   String get shortDescription {
     final text = description?.trim();
     if (text == null || text.isEmpty) {
-      return 'Resumo nao informado pela API.';
+      return 'Resumo nao disponivel na Open Library para este resultado.';
     }
 
     return text;
@@ -113,6 +192,40 @@ class Book {
         .map((item) => item.toString().trim())
         .where((item) => item.isNotEmpty)
         .toList();
+  }
+
+  static String? _preferredLanguageCode(List<String> languages) {
+    if (languages.isEmpty) {
+      return null;
+    }
+
+    final normalizedCodes = languages
+        .map((language) => language.trim().toLowerCase())
+        .where((language) => language.isNotEmpty)
+        .toList(growable: false);
+
+    if (normalizedCodes.isEmpty) {
+      return null;
+    }
+
+    const preferredCodes = ['por', 'pt', 'eng', 'en', 'spa', 'es'];
+    for (final code in preferredCodes) {
+      if (normalizedCodes.contains(code)) {
+        return code;
+      }
+    }
+
+    return normalizedCodes.first;
+  }
+
+  static String? _summaryFromSubjects(dynamic value) {
+    final subjects = _stringList(value);
+    if (subjects.isEmpty) {
+      return null;
+    }
+
+    final selectedSubjects = subjects.take(3).join(', ');
+    return 'Temas relacionados: $selectedSubjects.';
   }
 
   static String? _firstStringValue(dynamic value) {
