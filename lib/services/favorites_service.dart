@@ -89,7 +89,7 @@ class FavoritesService {
   Future<void> _saveFavorites(List<Book> favorites) async {
     final preferences = await SharedPreferences.getInstance();
     final encodedBooks = favorites
-        .map((book) => jsonEncode(book.toJson()))
+        .map((book) => jsonEncode(book.toMap()))
         .toList(growable: false);
 
     final saved = await preferences.setStringList(_favoritesKey, encodedBooks);
@@ -109,7 +109,7 @@ class FavoritesService {
         return null;
       }
 
-      return Book.fromJson(decodedBook);
+      return Book.fromMap(decodedBook);
     } catch (_) {
       return null;
     }

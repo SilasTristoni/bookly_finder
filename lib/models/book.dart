@@ -1,57 +1,128 @@
 class Book {
   const Book({
-    required this.id,
     required this.title,
+    required this.author,
+    this.coverId,
+    this.firstPublishYear,
+    this.language,
     this.editionKey,
-    this.author,
-    this.coverUrl,
     this.description,
   });
 
-  final String id;
   final String title;
+  final String author;
+  final int? coverId;
+  final int? firstPublishYear;
+  final String? language;
   final String? editionKey;
-  final String? author;
-  final String? coverUrl;
   final String? description;
 
-  String get favoriteKey {
-    final normalizedEditionKey = editionKey?.trim();
+  factory Book.fromJson(Map<String, dynamic> json) {
+    final authors = _stringList(json['author_name']);
+    final languages = _stringList(json['language']);
+    final editions = _stringList(json['edition_key']);
 
-    if (normalizedEditionKey != null && normalizedEditionKey.isNotEmpty) {
-      return normalizedEditionKey;
-    }
-
-    if (id.trim().isNotEmpty) {
-      return id.trim();
-    }
-
-    return '${title.trim().toLowerCase()}-${author?.trim().toLowerCase() ?? ''}';
-  }
-
-  Map<String, dynamic> toMap() {
-    return {
-      'id': id,
-      'title': title,
-      'editionKey': editionKey,
-      'author': author,
-      'coverUrl': coverUrl,
-      'description': description,
-    };
+    return Book(
+      title: _stringValue(json['title']) ?? 'Titulo desconhecido',
+      author: authors.isEmpty ? 'Autor desconhecido' : authors.join(', '),
+      coverId: _intValue(json['cover_i']),
+      firstPublishYear: _intValue(json['first_publish_year']),
+      language: languages.isEmpty ? null : languages.first,
+      editionKey: editions.isEmpty ? null : editions.first,
+    );
   }
 
   factory Book.fromMap(Map<String, dynamic> map) {
     return Book(
-      id: map['id'] as String? ?? map['editionKey'] as String? ?? '',
-      title: map['title'] as String? ?? 'Titulo indisponivel',
-      editionKey: map['editionKey'] as String?,
-      author: map['author'] as String?,
-      coverUrl: map['coverUrl'] as String?,
-      description: map['description'] as String?,
+      title: _stringValue(map['title']) ?? 'Titulo desconhecido',
+      author: _stringValue(map['author']) ?? 'Autor desconhecido',
+      coverId: _intValue(map['coverId']),
+      firstPublishYear: _intValue(map['firstPublishYear']),
+      language: _stringValue(map['language']),
+      editionKey: _stringValue(map['editionKey']),
+      description: _stringValue(map['description']),
     );
+  }
+
+  String? get coverUrl {
+    final id = coverId;
+    if (id == null) {
+      return null;
+    }
+
+    return 'https://covers.openlibrary.org/b/id/$id-M.jpg';
+  }
+
+  String get publishYearLabel {
+    final year = firstPublishYear;
+    if (year == null) {
+      return 'Ano nao informado';
+    }
+
+    return year.toString();
+  }
+
+  String get favoriteKey {
+    final normalizedEditionKey = editionKey?.trim();
+    if (normalizedEditionKey != null && normalizedEditionKey.isNotEmpty) {
+      return normalizedEditionKey;
+    }
+
+    return '${title.trim().toLowerCase()}-${author.trim().toLowerCase()}';
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'title': title,
+      'author': author,
+      'coverId': coverId,
+      'firstPublishYear': firstPublishYear,
+      'language': language,
+      'editionKey': editionKey,
+      'description': description,
+    };
   }
 
   Map<String, dynamic> toJson() => toMap();
 
-  factory Book.fromJson(Map<String, dynamic> json) => Book.fromMap(json);
+  static List<String> _stringList(dynamic value) {
+    if (value is! List) {
+      return const [];
+    }
+
+    return value
+        .whereType<Object>()
+        .map((item) => item.toString().trim())
+        .where((item) => item.isNotEmpty)
+        .toList();
+  }
+
+  static String? _stringValue(dynamic value) {
+    if (value == null) {
+      return null;
+    }
+
+    final text = value.toString().trim();
+    if (text.isEmpty) {
+      return null;
+    }
+
+    return text;
+  }
+
+  static int? _intValue(dynamic value) {
+    if (value is int) {
+      return value;
+    }
+
+    if (value is num) {
+      return value.toInt();
+    }
+
+    if (value is String) {
+      return int.tryParse(value);
+    }
+
+    return null;
+  }
 }

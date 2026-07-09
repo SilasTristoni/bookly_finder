@@ -6,11 +6,11 @@ import '../services/favorites_service.dart';
 class DetailsScreen extends StatefulWidget {
   const DetailsScreen({
     super.key,
-    this.book,
+    required this.book,
     FavoritesService? favoritesService,
   }) : _favoritesService = favoritesService ?? const FavoritesService();
 
-  final Book? book;
+  final Book book;
   final FavoritesService _favoritesService;
 
   @override
@@ -19,8 +19,8 @@ class DetailsScreen extends StatefulWidget {
 
 class _DetailsScreenState extends State<DetailsScreen> {
   bool _isFavorite = false;
-  bool _isLoading = true;
-  bool _isUpdating = false;
+  bool _isLoadingFavorite = true;
+  bool _isUpdatingFavorite = false;
 
   @override
   void initState() {
@@ -29,15 +29,8 @@ class _DetailsScreenState extends State<DetailsScreen> {
   }
 
   Future<void> _loadFavoriteStatus() async {
-    final book = widget.book;
-
-    if (book == null) {
-      setState(() => _isLoading = false);
-      return;
-    }
-
     try {
-      final isFavorite = await widget._favoritesService.isFavorite(book);
+      final isFavorite = await widget._favoritesService.isFavorite(widget.book);
 
       if (!mounted) {
         return;
@@ -45,32 +38,30 @@ class _DetailsScreenState extends State<DetailsScreen> {
 
       setState(() {
         _isFavorite = isFavorite;
-        _isLoading = false;
+        _isLoadingFavorite = false;
       });
     } catch (_) {
       if (!mounted) {
         return;
       }
 
-      setState(() => _isLoading = false);
+      setState(() => _isLoadingFavorite = false);
       _showSnackBar('Nao foi possivel verificar os favoritos.');
     }
   }
 
   Future<void> _toggleFavorite() async {
-    final book = widget.book;
-
-    if (book == null || _isUpdating) {
+    if (_isUpdatingFavorite) {
       return;
     }
 
-    setState(() => _isUpdating = true);
+    setState(() => _isUpdatingFavorite = true);
 
     try {
       if (_isFavorite) {
-        await widget._favoritesService.removeFavorite(book);
+        await widget._favoritesService.removeFavorite(widget.book);
       } else {
-        await widget._favoritesService.addFavorite(book);
+        await widget._favoritesService.addFavorite(widget.book);
       }
 
       if (!mounted) {
@@ -79,7 +70,7 @@ class _DetailsScreenState extends State<DetailsScreen> {
 
       setState(() {
         _isFavorite = !_isFavorite;
-        _isUpdating = false;
+        _isUpdatingFavorite = false;
       });
 
       _showSnackBar(
@@ -92,7 +83,7 @@ class _DetailsScreenState extends State<DetailsScreen> {
         return;
       }
 
-      setState(() => _isUpdating = false);
+      setState(() => _isUpdatingFavorite = false);
       _showSnackBar('Nao foi possivel atualizar os favoritos.');
     }
   }
@@ -106,36 +97,150 @@ class _DetailsScreenState extends State<DetailsScreen> {
   @override
   Widget build(BuildContext context) {
     final book = widget.book;
-    final title = book?.title ?? 'Detalhes do livro';
-    final author = book?.author ?? 'Autor desconhecido';
-    final description =
-        book?.description ??
-        'As informacoes completas do livro aparecerao aqui.';
+    final theme = Theme.of(context);
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(title),
+        title: const Text('Detalhes do livro'),
         actions: [
-          if (book != null)
-            IconButton(
-              tooltip: _isFavorite ? 'Remover favorito' : 'Adicionar favorito',
-              onPressed: _isLoading || _isUpdating ? null : _toggleFavorite,
-              icon: Icon(_isFavorite ? Icons.favorite : Icons.favorite_outline),
-            ),
+          IconButton(
+            tooltip: _isFavorite ? 'Remover favorito' : 'Adicionar favorito',
+            onPressed: _isLoadingFavorite || _isUpdatingFavorite
+                ? null
+                : _toggleFavorite,
+            icon: Icon(_isFavorite ? Icons.favorite : Icons.favorite_outline),
+          ),
         ],
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+      body: SafeArea(
+        child: ListView(
+          padding: const EdgeInsets.all(24),
           children: [
-            Text(title, style: Theme.of(context).textTheme.headlineSmall),
-            const SizedBox(height: 8),
-            Text(author, style: Theme.of(context).textTheme.titleMedium),
-            const SizedBox(height: 16),
-            Text(description, style: Theme.of(context).textTheme.bodyLarge),
+            Center(child: _DetailsCover(book: book)),
+            const SizedBox(height: 24),
+            Text(
+              book.title,
+              textAlign: TextAlign.center,
+              style: theme.textTheme.headlineSmall?.copyWith(
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+            const SizedBox(height: 24),
+            _DetailTile(
+              icon: Icons.person_outline,
+              label: 'Autor',
+              value: book.author,
+            ),
+            _DetailTile(
+              icon: Icons.calendar_today_outlined,
+              label: 'Primeira publicacao',
+              value: book.publishYearLabel,
+            ),
+            _DetailTile(
+              icon: Icons.language_outlined,
+              label: 'Idioma',
+              value: book.language ?? 'Idioma nao informado',
+            ),
+            _DetailTile(
+              icon: Icons.confirmation_number_outlined,
+              label: 'Edicao',
+              value: book.editionKey ?? 'Edicao nao informada',
+            ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _DetailsCover extends StatelessWidget {
+  const _DetailsCover({required this.book});
+
+  final Book book;
+
+  @override
+  Widget build(BuildContext context) {
+    final coverUrl = book.coverUrl;
+
+    if (coverUrl == null) {
+      return const _DetailsCoverPlaceholder();
+    }
+
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(8),
+      child: Image.network(
+        coverUrl,
+        width: 150,
+        height: 225,
+        fit: BoxFit.cover,
+        errorBuilder: (_, _, _) => const _DetailsCoverPlaceholder(),
+      ),
+    );
+  }
+}
+
+class _DetailsCoverPlaceholder extends StatelessWidget {
+  const _DetailsCoverPlaceholder();
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Container(
+      width: 150,
+      height: 225,
+      decoration: BoxDecoration(
+        color: colorScheme.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Icon(
+        Icons.menu_book_outlined,
+        size: 64,
+        color: colorScheme.onSurfaceVariant,
+      ),
+    );
+  }
+}
+
+class _DetailTile extends StatelessWidget {
+  const _DetailTile({
+    required this.icon,
+    required this.label,
+    required this.value,
+  });
+
+  final IconData icon;
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, color: theme.colorScheme.primary),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: theme.textTheme.labelLarge?.copyWith(
+                    color: theme.colorScheme.primary,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(value, style: theme.textTheme.bodyLarge),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
