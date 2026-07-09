@@ -40,7 +40,23 @@ O aplicativo consome a API pública da **Open Library** por meio do endpoint de 
 https://openlibrary.org/search.json?q=termo-da-busca
 ```
 
+Para melhorar a qualidade dos dados exibidos, o app solicita campos específicos da API, como:
+
+```text
+key,title,author_name,cover_i,first_publish_year,language,edition_key,publisher,first_sentence,subtitle,subject
+```
+
 A partir do retorno da API, o app monta os dados do livro, como título, autor, capa, ano de primeira publicação, idioma, editora, edição e resumo curto quando essas informações estão disponíveis.
+
+## Tratamento dos dados da Open Library
+
+Como a Open Library é uma base pública e colaborativa, nem todos os livros retornam todos os campos preenchidos. Por isso, o projeto possui tratamentos para melhorar a exibição:
+
+- escolha preferencial de idioma em português, inglês ou espanhol quando a API retorna vários códigos;
+- conversão de códigos como `eng`, `por`, `spa` e `rum` para nomes legíveis;
+- fallback amigável quando editora, edição, idioma ou resumo não são informados;
+- uso de `first_sentence`, `subtitle` ou `subject` como alternativas para montar um resumo curto;
+- manutenção da busca funcional mesmo quando alguns dados do JSON vêm ausentes.
 
 ## Funcionalidades principais
 
@@ -81,8 +97,8 @@ lib/
 ### Responsabilidades dos arquivos
 
 - `main.dart`: inicialização do aplicativo e configuração do tema.
-- `models/book.dart`: modelo de dados do livro e conversões entre JSON/mapa.
-- `services/open_library_service.dart`: comunicação com a API da Open Library e tratamento de erros.
+- `models/book.dart`: modelo de dados do livro, tratamento de campos ausentes e conversões entre JSON/mapa.
+- `services/open_library_service.dart`: comunicação com a API da Open Library, seleção de campos e tratamento de erros.
 - `services/favorites_service.dart`: gravação, leitura e remoção dos favoritos com Shared Preferences.
 - `screens/home_screen.dart`: tela inicial, busca, loading, erros e listagem de resultados.
 - `screens/details_screen.dart`: tela de detalhes e ação de favoritar/remover favorito.
@@ -98,7 +114,8 @@ O app trata diferentes cenários para melhorar a experiência do usuário:
 - falha de conexão;
 - resposta inválida da API;
 - timeout na requisição;
-- falha ao salvar, carregar ou remover favoritos.
+- falha ao salvar, carregar ou remover favoritos;
+- dados incompletos retornados pela API.
 
 Esses casos exibem mensagens amigáveis na interface ou feedback por `SnackBar`.
 
@@ -138,10 +155,23 @@ flutter run
 
 ## Testes
 
-Para executar os testes automatizados existentes:
+Para validar o projeto antes da entrega, execute:
 
 ```bash
+flutter pub get
+flutter analyze
 flutter test
+flutter run
+```
+
+Caso o computador institucional não permita habilitar o modo de desenvolvedor do Windows, é possível testar apenas o alvo Android/Web removendo as pastas de desktop que exigem suporte a symlinks:
+
+```bash
+rmdir /s /q windows
+rmdir /s /q linux
+rmdir /s /q macos
+flutter clean
+flutter pub get
 ```
 
 ## Organização do trabalho em equipe
@@ -164,5 +194,6 @@ Essa organização facilita a revisão do código, mostra a evolução do desenv
 - Navegação entre busca, detalhes e favoritos.
 - Interface com Material Design 3, cards, ícones e imagens.
 - Tratamento de loading, erros e estados vazios.
+- Tratamento de dados incompletos da API pública.
 - Possibilidade de limpar a busca.
 - Histórico de commits e pull requests no GitHub.
