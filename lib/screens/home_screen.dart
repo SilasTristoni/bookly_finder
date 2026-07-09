@@ -31,15 +31,35 @@ class _HomeScreenState extends State<HomeScreen> {
     super.initState();
     _service = widget.service ?? OpenLibraryService();
     _ownsService = widget.service == null;
+    _searchController.addListener(_handleSearchTextChanged);
   }
 
   @override
   void dispose() {
+    _searchController.removeListener(_handleSearchTextChanged);
     _searchController.dispose();
     if (_ownsService) {
       _service.dispose();
     }
     super.dispose();
+  }
+
+  void _handleSearchTextChanged() {
+    if (mounted) {
+      setState(() {});
+    }
+  }
+
+  void _clearSearch() {
+    _searchVersion++;
+    _searchController.clear();
+
+    setState(() {
+      _books = const [];
+      _isLoading = false;
+      _errorMessage = null;
+      _emptyMessage = null;
+    });
   }
 
   Future<void> _searchBooks() async {
@@ -113,6 +133,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final hasSearchText = _searchController.text.trim().isNotEmpty;
 
     return Scaffold(
       appBar: AppBar(
@@ -139,10 +160,21 @@ class _HomeScreenState extends State<HomeScreen> {
                   labelText: 'Buscar livros',
                   hintText: 'Titulo, autor ou palavra-chave',
                   prefixIcon: const Icon(Icons.search),
-                  suffixIcon: IconButton(
-                    tooltip: 'Buscar',
-                    onPressed: _isLoading ? null : _searchBooks,
-                    icon: const Icon(Icons.arrow_forward),
+                  suffixIcon: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (hasSearchText)
+                        IconButton(
+                          tooltip: 'Limpar busca',
+                          onPressed: _clearSearch,
+                          icon: const Icon(Icons.clear),
+                        ),
+                      IconButton(
+                        tooltip: 'Buscar',
+                        onPressed: _isLoading ? null : _searchBooks,
+                        icon: const Icon(Icons.arrow_forward),
+                      ),
+                    ],
                   ),
                   border: const OutlineInputBorder(),
                 ),
