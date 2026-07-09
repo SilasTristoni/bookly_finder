@@ -3,10 +3,16 @@ import 'package:flutter/material.dart';
 import '../models/book.dart';
 
 class BookCard extends StatelessWidget {
-  const BookCard({super.key, required this.book, required this.onTap});
+  const BookCard({
+    super.key,
+    required this.book,
+    required this.onTap,
+    this.onRemove,
+  });
 
   final Book book;
   final VoidCallback onTap;
+  final VoidCallback? onRemove;
 
   @override
   Widget build(BuildContext context) {
@@ -62,7 +68,14 @@ class BookCard extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 8),
-              const Icon(Icons.chevron_right),
+              if (onRemove == null)
+                const Icon(Icons.chevron_right)
+              else
+                IconButton(
+                  tooltip: 'Remover favorito',
+                  onPressed: onRemove,
+                  icon: const Icon(Icons.delete_outline),
+                ),
             ],
           ),
         ),

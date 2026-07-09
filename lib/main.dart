@@ -33,8 +33,6 @@ class BooklyFinderApp extends StatelessWidget {
             borderRadius: BorderRadius.all(Radius.circular(8)),
           ),
         ),
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.indigo),
-        useMaterial3: true,
       ),
       home: const HomeScreen(),
     );

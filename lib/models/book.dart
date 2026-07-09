@@ -6,6 +6,7 @@ class Book {
     this.firstPublishYear,
     this.language,
     this.editionKey,
+    this.description,
   });
 
   final String title;
@@ -14,6 +15,7 @@ class Book {
   final int? firstPublishYear;
   final String? language;
   final String? editionKey;
+  final String? description;
 
   factory Book.fromJson(Map<String, dynamic> json) {
     final authors = _stringList(json['author_name']);
@@ -21,12 +23,24 @@ class Book {
     final editions = _stringList(json['edition_key']);
 
     return Book(
-      title: _stringValue(json['title']) ?? 'Título desconhecido',
+      title: _stringValue(json['title']) ?? 'Titulo desconhecido',
       author: authors.isEmpty ? 'Autor desconhecido' : authors.join(', '),
       coverId: _intValue(json['cover_i']),
       firstPublishYear: _intValue(json['first_publish_year']),
       language: languages.isEmpty ? null : languages.first,
       editionKey: editions.isEmpty ? null : editions.first,
+    );
+  }
+
+  factory Book.fromMap(Map<String, dynamic> map) {
+    return Book(
+      title: _stringValue(map['title']) ?? 'Titulo desconhecido',
+      author: _stringValue(map['author']) ?? 'Autor desconhecido',
+      coverId: _intValue(map['coverId']),
+      firstPublishYear: _intValue(map['firstPublishYear']),
+      language: _stringValue(map['language']),
+      editionKey: _stringValue(map['editionKey']),
+      description: _stringValue(map['description']),
     );
   }
 
@@ -42,11 +56,34 @@ class Book {
   String get publishYearLabel {
     final year = firstPublishYear;
     if (year == null) {
-      return 'Ano não informado';
+      return 'Ano nao informado';
     }
 
     return year.toString();
   }
+
+  String get favoriteKey {
+    final normalizedEditionKey = editionKey?.trim();
+    if (normalizedEditionKey != null && normalizedEditionKey.isNotEmpty) {
+      return normalizedEditionKey;
+    }
+
+    return '${title.trim().toLowerCase()}-${author.trim().toLowerCase()}';
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'title': title,
+      'author': author,
+      'coverId': coverId,
+      'firstPublishYear': firstPublishYear,
+      'language': language,
+      'editionKey': editionKey,
+      'description': description,
+    };
+  }
+
+  Map<String, dynamic> toJson() => toMap();
 
   static List<String> _stringList(dynamic value) {
     if (value is! List) {
@@ -88,16 +125,4 @@ class Book {
 
     return null;
   }
-    required this.id,
-    required this.title,
-    this.author,
-    this.coverUrl,
-    this.description,
-  });
-
-  final String id;
-  final String title;
-  final String? author;
-  final String? coverUrl;
-  final String? description;
 }

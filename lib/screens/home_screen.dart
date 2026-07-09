@@ -51,7 +51,7 @@ class _HomeScreenState extends State<HomeScreen> {
         _books = const [];
         _isLoading = false;
         _errorMessage = null;
-        _emptyMessage = 'Digite um título, autor ou palavra-chave para buscar.';
+        _emptyMessage = 'Digite um titulo, autor ou palavra-chave para buscar.';
       });
       return;
     }
@@ -93,45 +93,26 @@ class _HomeScreenState extends State<HomeScreen> {
       setState(() {
         _books = const [];
         _isLoading = false;
-        _errorMessage = 'Não foi possível concluir a busca.';
+        _errorMessage = 'Nao foi possivel concluir a busca.';
       });
     }
   }
 
-  void _openDetails(Book book) {
-    Navigator.of(
+  Future<void> _openDetails(Book book) async {
+    await Navigator.of(
       context,
     ).push(MaterialPageRoute<void>(builder: (_) => DetailsScreen(book: book)));
   }
 
-  void _openFavorites() {
-import 'details_screen.dart';
-import 'favorites_screen.dart';
-
-class HomeScreen extends StatelessWidget {
-  const HomeScreen({super.key});
-
-  void _openFavorites(BuildContext context) {
-    Navigator.of(
+  Future<void> _openFavorites() async {
+    await Navigator.of(
       context,
     ).push(MaterialPageRoute<void>(builder: (_) => const FavoritesScreen()));
   }
 
-<<<<<<< HEAD
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-=======
-  void _openDetails(BuildContext context) {
-    Navigator.of(
-      context,
-    ).push(MaterialPageRoute<void>(builder: (_) => const DetailsScreen()));
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
->>>>>>> master
 
     return Scaffold(
       appBar: AppBar(
@@ -156,7 +137,7 @@ class HomeScreen extends StatelessWidget {
                 onSubmitted: (_) => _searchBooks(),
                 decoration: InputDecoration(
                   labelText: 'Buscar livros',
-                  hintText: 'Título, autor ou palavra-chave',
+                  hintText: 'Titulo, autor ou palavra-chave',
                   prefixIcon: const Icon(Icons.search),
                   suffixIcon: IconButton(
                     tooltip: 'Buscar',
@@ -193,7 +174,7 @@ class HomeScreen extends StatelessWidget {
       return _StatusMessage(
         key: const ValueKey('error'),
         icon: Icons.wifi_off_outlined,
-        title: 'Busca indisponível',
+        title: 'Busca indisponivel',
         message: errorMessage,
         iconColor: theme.colorScheme.error,
       );
@@ -213,8 +194,8 @@ class HomeScreen extends StatelessWidget {
       return const _StatusMessage(
         key: ValueKey('initial'),
         icon: Icons.auto_stories_outlined,
-        title: 'Encontre seu próximo livro',
-        message: 'Pesquise por título, autor ou qualquer palavra-chave.',
+        title: 'Encontre seu proximo livro',
+        message: 'Pesquise por titulo, autor ou qualquer palavra-chave.',
       );
     }
 
@@ -270,52 +251,6 @@ class _StatusMessage extends StatelessWidget {
             ),
           ],
         ),
-            onPressed: () => _openFavorites(context),
-            icon: const Icon(Icons.favorite_outline),
-          ),
-        ],
-      ),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          SearchBar(
-            hintText: 'Pesquisar livros',
-            leading: const Icon(Icons.search),
-            trailing: const [Icon(Icons.tune)],
-            onTap: () {},
-          ),
-          const SizedBox(height: 24),
-          Text('Resultados', style: Theme.of(context).textTheme.titleLarge),
-          const SizedBox(height: 12),
-          Container(
-            padding: const EdgeInsets.all(24),
-            decoration: BoxDecoration(
-              color: colorScheme.surfaceContainerHighest,
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Column(
-              children: [
-                Icon(
-                  Icons.menu_book_outlined,
-                  size: 48,
-                  color: colorScheme.primary,
-                ),
-                const SizedBox(height: 12),
-                Text(
-                  'A lista de livros pesquisados aparecerá aqui.',
-                  textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.bodyLarge,
-                ),
-                const SizedBox(height: 16),
-                OutlinedButton.icon(
-                  onPressed: () => _openDetails(context),
-                  icon: const Icon(Icons.arrow_forward),
-                  label: const Text('Prévia de detalhes'),
-                ),
-              ],
-            ),
-          ),
-        ],
       ),
     );
   }

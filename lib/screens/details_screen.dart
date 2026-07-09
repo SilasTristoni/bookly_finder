@@ -1,18 +1,117 @@
 import 'package:flutter/material.dart';
 
 import '../models/book.dart';
+import '../services/favorites_service.dart';
 
-class DetailsScreen extends StatelessWidget {
-  const DetailsScreen({super.key, required this.book});
+class DetailsScreen extends StatefulWidget {
+  const DetailsScreen({
+    super.key,
+    required this.book,
+    FavoritesService? favoritesService,
+  }) : _favoritesService = favoritesService ?? const FavoritesService();
 
   final Book book;
+  final FavoritesService _favoritesService;
+
+  @override
+  State<DetailsScreen> createState() => _DetailsScreenState();
+}
+
+class _DetailsScreenState extends State<DetailsScreen> {
+  bool _isFavorite = false;
+  bool _isLoadingFavorite = true;
+  bool _isUpdatingFavorite = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadFavoriteStatus();
+  }
+
+  Future<void> _loadFavoriteStatus() async {
+    try {
+      final isFavorite = await widget._favoritesService.isFavorite(widget.book);
+
+      if (!mounted) {
+        return;
+      }
+
+      setState(() {
+        _isFavorite = isFavorite;
+        _isLoadingFavorite = false;
+      });
+    } catch (_) {
+      if (!mounted) {
+        return;
+      }
+
+      setState(() => _isLoadingFavorite = false);
+      _showSnackBar('Nao foi possivel verificar os favoritos.');
+    }
+  }
+
+  Future<void> _toggleFavorite() async {
+    if (_isUpdatingFavorite) {
+      return;
+    }
+
+    setState(() => _isUpdatingFavorite = true);
+
+    try {
+      if (_isFavorite) {
+        await widget._favoritesService.removeFavorite(widget.book);
+      } else {
+        await widget._favoritesService.addFavorite(widget.book);
+      }
+
+      if (!mounted) {
+        return;
+      }
+
+      setState(() {
+        _isFavorite = !_isFavorite;
+        _isUpdatingFavorite = false;
+      });
+
+      _showSnackBar(
+        _isFavorite
+            ? 'Livro adicionado aos favoritos.'
+            : 'Livro removido dos favoritos.',
+      );
+    } catch (_) {
+      if (!mounted) {
+        return;
+      }
+
+      setState(() => _isUpdatingFavorite = false);
+      _showSnackBar('Nao foi possivel atualizar os favoritos.');
+    }
+  }
+
+  void _showSnackBar(String message) {
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(SnackBar(content: Text(message)));
+  }
 
   @override
   Widget build(BuildContext context) {
+    final book = widget.book;
     final theme = Theme.of(context);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Detalhes do livro')),
+      appBar: AppBar(
+        title: const Text('Detalhes do livro'),
+        actions: [
+          IconButton(
+            tooltip: _isFavorite ? 'Remover favorito' : 'Adicionar favorito',
+            onPressed: _isLoadingFavorite || _isUpdatingFavorite
+                ? null
+                : _toggleFavorite,
+            icon: Icon(_isFavorite ? Icons.favorite : Icons.favorite_outline),
+          ),
+        ],
+      ),
       body: SafeArea(
         child: ListView(
           padding: const EdgeInsets.all(24),
@@ -34,38 +133,18 @@ class DetailsScreen extends StatelessWidget {
             ),
             _DetailTile(
               icon: Icons.calendar_today_outlined,
-              label: 'Primeira publicação',
+              label: 'Primeira publicacao',
               value: book.publishYearLabel,
             ),
             _DetailTile(
               icon: Icons.language_outlined,
               label: 'Idioma',
-              value: book.language ?? 'Idioma não informado',
+              value: book.language ?? 'Idioma nao informado',
             ),
             _DetailTile(
               icon: Icons.confirmation_number_outlined,
-              label: 'Edição',
-              value: book.editionKey ?? 'Edição não informada',
-  const DetailsScreen({super.key, this.book});
-
-  final Book? book;
-
-  @override
-  Widget build(BuildContext context) {
-    final title = book?.title ?? 'Detalhes do livro';
-
-    return Scaffold(
-      appBar: AppBar(title: Text(title)),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(title, style: Theme.of(context).textTheme.headlineSmall),
-            const SizedBox(height: 12),
-            Text(
-              'As informações completas do livro serão exibidas aqui.',
-              style: Theme.of(context).textTheme.bodyLarge,
+              label: 'Edicao',
+              value: book.editionKey ?? 'Edicao nao informada',
             ),
           ],
         ),
