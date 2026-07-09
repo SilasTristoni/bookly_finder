@@ -10,6 +10,8 @@ Aplicativo mobile desenvolvido em Flutter para buscar livros na API pública da 
 ## Alunos
 
 - [Silas Tristoni](https://github.com/SilasTristoni)
+- [João Vitor Prestes](https://github.com/JoaoGarcia07)
+- [Felipe Pelentil](https://github.com/felps02)
 
 > Caso a entrega seja em equipe, inclua aqui os demais integrantes com o link do perfil do GitHub antes da entrega final.
 
