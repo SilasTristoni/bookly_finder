@@ -132,6 +132,11 @@ class _DetailsScreenState extends State<DetailsScreen> {
               value: book.author,
             ),
             _DetailTile(
+              icon: Icons.business_outlined,
+              label: 'Editora',
+              value: book.publisher ?? 'Editora nao informada',
+            ),
+            _DetailTile(
               icon: Icons.calendar_today_outlined,
               label: 'Primeira publicacao',
               value: book.publishYearLabel,
@@ -146,6 +151,15 @@ class _DetailsScreenState extends State<DetailsScreen> {
               label: 'Edicao',
               value: book.editionKey ?? 'Edicao nao informada',
             ),
+            const SizedBox(height: 24),
+            Text(
+              'Resumo',
+              style: theme.textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(book.shortDescription, style: theme.textTheme.bodyLarge),
           ],
         ),
       ),
