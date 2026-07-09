@@ -6,6 +6,7 @@ class Book {
     this.firstPublishYear,
     this.language,
     this.editionKey,
+    this.publisher,
     this.description,
   });
 
@@ -15,12 +16,14 @@ class Book {
   final int? firstPublishYear;
   final String? language;
   final String? editionKey;
+  final String? publisher;
   final String? description;
 
   factory Book.fromJson(Map<String, dynamic> json) {
     final authors = _stringList(json['author_name']);
     final languages = _stringList(json['language']);
     final editions = _stringList(json['edition_key']);
+    final publishers = _stringList(json['publisher']);
 
     return Book(
       title: _stringValue(json['title']) ?? 'Titulo desconhecido',
@@ -29,6 +32,10 @@ class Book {
       firstPublishYear: _intValue(json['first_publish_year']),
       language: languages.isEmpty ? null : languages.first,
       editionKey: editions.isEmpty ? null : editions.first,
+      publisher: publishers.isEmpty ? null : publishers.first,
+      description:
+          _firstStringValue(json['first_sentence']) ??
+          _firstStringValue(json['subtitle']),
     );
   }
 
@@ -40,6 +47,7 @@ class Book {
       firstPublishYear: _intValue(map['firstPublishYear']),
       language: _stringValue(map['language']),
       editionKey: _stringValue(map['editionKey']),
+      publisher: _stringValue(map['publisher']),
       description: _stringValue(map['description']),
     );
   }
@@ -62,6 +70,15 @@ class Book {
     return year.toString();
   }
 
+  String get shortDescription {
+    final text = description?.trim();
+    if (text == null || text.isEmpty) {
+      return 'Resumo nao informado pela API.';
+    }
+
+    return text;
+  }
+
   String get favoriteKey {
     final normalizedEditionKey = editionKey?.trim();
     if (normalizedEditionKey != null && normalizedEditionKey.isNotEmpty) {
@@ -79,6 +96,7 @@ class Book {
       'firstPublishYear': firstPublishYear,
       'language': language,
       'editionKey': editionKey,
+      'publisher': publisher,
       'description': description,
     };
   }
@@ -95,6 +113,21 @@ class Book {
         .map((item) => item.toString().trim())
         .where((item) => item.isNotEmpty)
         .toList();
+  }
+
+  static String? _firstStringValue(dynamic value) {
+    if (value is List) {
+      for (final item in value) {
+        final text = _stringValue(item);
+        if (text != null) {
+          return text;
+        }
+      }
+
+      return null;
+    }
+
+    return _stringValue(value);
   }
 
   static String? _stringValue(dynamic value) {
