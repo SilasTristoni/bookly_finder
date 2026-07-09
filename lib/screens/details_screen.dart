@@ -134,7 +134,7 @@ class _DetailsScreenState extends State<DetailsScreen> {
             _DetailTile(
               icon: Icons.business_outlined,
               label: 'Editora',
-              value: book.publisher ?? 'Editora nao informada',
+              value: book.publisherLabel,
             ),
             _DetailTile(
               icon: Icons.calendar_today_outlined,
@@ -144,12 +144,12 @@ class _DetailsScreenState extends State<DetailsScreen> {
             _DetailTile(
               icon: Icons.language_outlined,
               label: 'Idioma',
-              value: book.language ?? 'Idioma nao informado',
+              value: book.languageLabel,
             ),
             _DetailTile(
               icon: Icons.confirmation_number_outlined,
               label: 'Edicao',
-              value: book.editionKey ?? 'Edicao nao informada',
+              value: book.editionLabel,
             ),
             const SizedBox(height: 24),
             Text(
