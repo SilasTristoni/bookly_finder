@@ -27,6 +27,19 @@ class OpenLibraryService {
 
     final uri = Uri.https('openlibrary.org', '/search.json', {
       'q': term,
+      'fields': [
+        'key',
+        'title',
+        'author_name',
+        'cover_i',
+        'first_publish_year',
+        'language',
+        'edition_key',
+        'publisher',
+        'first_sentence',
+        'subtitle',
+        'subject',
+      ].join(','),
       'limit': '30',
     });
 
